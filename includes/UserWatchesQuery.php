@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 class UserWatchesQuery extends WatchesQuery {
 
 	public $sqlUserName = 'u.user_name AS user_name';
@@ -108,18 +110,21 @@ class UserWatchesQuery extends WatchesQuery {
 	public function getUserWatchStats( User $user ) {
 		$qInfo = $this->getQueryInfo();
 
-		$dbr = wfGetDB( DB_REPLICA );
+		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$dbr = $lb->getConnectionRef( DB_REPLICA );
 
-		$res = $dbr->select(
-			$qInfo['tables'],
-			$qInfo['fields'],
-			'w.wl_user=' . $user->getId(),
-			__METHOD__,
-			$qInfo['options'],
-			$qInfo['join_conds']
-		);
-
-		$row = $dbr->fetchRow( $res );
+		$row = $dbr->newSelectQueryBuilder()
+			->select( $qInfo['fields'] )
+			->from( 'watchlist', 'w' )
+			->leftJoin( 'user', 'u', 'u.user_id=w.wl_user')
+			->leftJoin( 'page', 'p', 'p.page_namespace=w.wl_namespace AND p.page_title=w.wl_title' )
+			->leftJoin( 'logging', 'log', 'log.log_namespace = w.wl_namespace AND log.log_title = w.wl_title AND p.page_namespace IS NULL AND p.page_title IS NULL AND log.log_action = "delete"' )
+			->where( [
+				'w.wl_user=' . $user->getId() ,
+			] )
+			->groupBy( 'w.wl_user' )
+			->caller( __METHOD__ )
+			->fetchRow();
 
 		// if user doesn't have any pages in watchlist, then no data will be
 		// returned by this query. Create a "blank" row instead.
