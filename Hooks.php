@@ -14,7 +14,7 @@ class WatchAnalyticsHooks {
 	 */
 	public static function onPersonalUrls( array &$personal_urls ) {
 		global $wgUser, $wgOut;
-		$user = $wgUser;
+		$user = RequestContent::getMain()->getUser();
 
 		if ( !$user->isAllowed( 'pendingreviewslink' ) ) {
 			return true;
