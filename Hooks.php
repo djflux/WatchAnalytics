@@ -91,7 +91,7 @@ class WatchAnalyticsHooks {
 		# 1) Is user's oldest pending review is old enough to require emphasis
 		#
 		$userWatch = new UserWatchesQuery();
-		$user->watchStats = $userWatch->getUserWatchStats( $user );
+		$user->watchStats[] = $userWatch->getUserWatchStats( $user );
 		$user->watchStats['max_pending_days'] = ceil(
 			$user->watchStats['max_pending_minutes'] / ( 60 * 24 )
 		);
