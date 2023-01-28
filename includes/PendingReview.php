@@ -169,20 +169,28 @@ class PendingReview {
 			],
 		];
 
-		$dbr = wfGetDB( DB_REPLICA );
+               $lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
 
-		$watchResult = $dbr->select(
-			$tables,
-			$fields,
-			$conds,
-			__METHOD__,
-			$options,
-			$join_conds
-		);
+               $dbr = $lb->getConnectionRef( DB_REPLICA );
+
+               $watchResults = $dbr->newSelectQueryBuilder()
+                               ->select( $fields )
+                               ->from( 'watchlist' )
+                               ->join( 'watchlist', 'w', null)
+                               ->leftJoin( 'page', 'p', 'p.page_namespace=w.wl_namespace AND p.page_title=w.wl_title')
+                               ->leftJoin( 'logging', 'log', 'log.log_namespace = w.wl_namespace '
+                                . ' AND log.log_title = w.wl_title'
+                                . ' AND p.page_namespace IS NULL'
+                                . ' AND p.page_title IS NULL'
+                                . ' AND log.log_action IN ("delete","move")' )
+                               ->where( $conds )
+                               ->options( $options )
+                               ->caller( __METHOD__ )
+			       ->fetchResultSet();
 
 		$pending = [];
 
-		while ( $row = $dbr->fetchRow( $watchResult ) ) {
+		while ( $row = $watchResults->fetchRow() ) {
 
 			$pending[] = new self( $row );
 
