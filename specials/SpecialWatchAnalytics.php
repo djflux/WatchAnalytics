@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 class SpecialWatchAnalytics extends SpecialPage {
 
 	public $mMode;
@@ -74,7 +76,8 @@ class SpecialWatchAnalytics extends SpecialPage {
 		// FROM watchlist
 		// INNER JOIN page ON page.page_namespace = watchlist.wl_namespace AND page.page_title = watchlist.wl_title;		$dbr = wfGetDB( DB_SLAVE );
 
-		$db = wfGetDB( DB_MASTER );
+		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$db = $lb->getConnectionRef( DB_MASTER );
 
 		// $res = $dbr->select(
 		// array(
@@ -96,16 +99,14 @@ class SpecialWatchAnalytics extends SpecialPage {
 		// )
 		// );
 
-		$res = $db->query( '
-			SELECT
-				COUNT(*) AS num_watches,
-				SUM( IF(watchlist.wl_notificationtimestamp IS NULL, 0, 1) ) AS num_pending,
-				SUM( IF(watchlist.wl_notificationtimestamp IS NULL, 0, 1) ) * 100 / COUNT(*) AS percent_pending
-			FROM watchlist
-			INNER JOIN page ON page.page_namespace = watchlist.wl_namespace AND page.page_title = watchlist.wl_title;
-		' );
-
-		$allWikiData = $db->fetchRow( $res );
+		$allWikiData = $db->newSelectQueryBuilder()
+				->select( 'COUNT(*) AS num_watches,
+						SUM( IF(watchlist.wl_notificationtimestamp IS NULL, 0, 1) ) AS num_pending,
+						SUM( IF(watchlist.wl_notificationtimestamp IS NULL, 0, 1) ) * 100 / COUNT(*) AS percent_pending' )
+				->from( 'watchlist' )
+				->join( 'page', null, 'page.page_namespace = watchlist.wl_namespace AND page.page_title = watchlist.wl_title' )
+				->caller( __METHOD__ )
+				->fetchRow();
 
 		list( $watches, $pending, $percent ) = [
 			$allWikiData['num_watches'],
