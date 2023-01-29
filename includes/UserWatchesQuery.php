@@ -157,25 +157,20 @@ class UserWatchesQuery extends WatchesQuery {
 			$this->sqlNumPending,
 		];
 
-		$dbr = wfGetDB( DB_REPLICA );
+		$lb = MediaWikiServices::getInstance()->getDBLoadBalancer();
+		$dbr = $lb->getConnectionRef( DB_REPLICA );
 
-		$res = $dbr->select(
-			[
-				'w' => 'watchlist'
-			],
-			$fields,
-			[
-				'w.wl_user' => $userIds
-			],
-			__METHOD__,
-			[
-				'GROUP BY' => 'w.wl_user'
-			], // no options
-			null // no joins
-		);
+		$res = $dbr->newSelectQueryBuilder()
+			->select( $fields )
+			->from( 'watchlist' )
+			->join( 'watchlist', 'w', null )
+			->where( 'w.wl_user' => $userIds )
+			->options( 'GROUP BY' => 'w.wl_user' )
+			->caller( __METHOD__ )
+			->fetchResultSet();
 
 		$return = [];
-		while ( $row = $res->fetchObject() ) {
+		while ( $row = $res->fetchRow() {
 			$return[] = (object)[
 				'wl_user' => $row->wl_user,
 				'num_watches' => $row->num_watches,
