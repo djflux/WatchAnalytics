@@ -109,9 +109,9 @@ class SpecialWatchAnalytics extends SpecialPage {
 				->fetchRow();
 
 		list( $watches, $pending, $percent ) = [
-			$allWikiData['num_watches'],
-			$allWikiData['num_pending'],
-			$allWikiData['percent_pending']
+			$allWikiData->num_watches,
+			$allWikiData->num_pending,
+			$allWikiData->percent_pending
 		];
 
 		$percent = round( $percent, 1 );
