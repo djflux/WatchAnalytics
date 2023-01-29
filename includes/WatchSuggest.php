@@ -345,13 +345,13 @@ class WatchSuggest {
 	}
 
 	public static function getWatchLink( Title $title ) {
-		global $wgUser;
+		$contextUser = RequestContext::getMain()->getUser();
 
 		// action=watch&token=9d1186bca6dd20866e607538b92be6c8%2B%5C
 		$csrfTokenSet = RequestContext::getMain()->getCsrfTokenSet();
 		$watchLinkURL = $title->getLinkURL( [
 			'action' => 'watch',
-			'token' => $csrfTokenSet->getToken( $title . $wgUser ),
+			'token' => $csrfTokenSet->getToken( $title . $contextUser ),
 		] );
 
 		$watchLink =
