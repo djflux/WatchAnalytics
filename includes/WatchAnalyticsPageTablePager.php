@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 class WatchAnalyticsPageTablePager extends WatchAnalyticsTablePager {
 
 	protected $isSortable = [
