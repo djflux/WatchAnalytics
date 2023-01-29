@@ -691,7 +691,7 @@ class SpecialPendingReviews extends SpecialPage {
 	public function getPageHeader( User $user, $useApprovedRevs ) {
 		$userWatch = new UserWatchesQuery();
 		$watchStats = $userWatch->getUserWatchStats( $user );
-		$numPendingReviews = $watchStats['num_pending'];
+		$numPendingReviews = $watchStats->num_pending;
 
 		$html = '';
 
