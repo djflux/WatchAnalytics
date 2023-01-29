@@ -30,7 +30,7 @@ class WatchAnalyticsPageTablePager extends WatchAnalyticsTablePager {
 	}
 
 	public function getQueryInfo() {
-		$namespaces = MWNamespace::getCanonicalNamespaces();
+		$namespaces = NamespaceInfo::getCanonicalNamespaces();
 
 		if ( $this->mQueryNamespace !== null
 			&& $this->mQueryNamespace >= 0
