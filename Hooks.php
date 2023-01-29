@@ -26,7 +26,7 @@ class WatchAnalyticsHooks {
 
 		// Get user's watch/review stats
 		$watchStats = $user->watchStats; // set in onBeforePageDisplay() hook
-		$numPending = $watchStats['num_pending'];
+		$numPending = intval($watchStats['num_pending']);
 		$maxPendingDays = $watchStats['max_pending_days'];
 
 		// Get user's pending approvals

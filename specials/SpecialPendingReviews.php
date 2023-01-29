@@ -701,7 +701,10 @@ class SpecialPendingReviews extends SpecialPage {
 	public function getPageHeader( User $user, $useApprovedRevs ) {
 		$userWatch = new UserWatchesQuery();
 		$watchStats = $userWatch->getUserWatchStats( $user );
-		$numPendingReviews = $watchStats->num_pending;
+		// $watchStats seems to come through as a PHP stdClass. This code converts to an array
+		$watchStatus = json_decode(json_encode($watchStats), true);
+
+		$numPendingReviews = intval($watchStats[ 'num_pending' ]);
 
 		$html = '';
 
