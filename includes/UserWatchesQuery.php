@@ -170,7 +170,7 @@ class UserWatchesQuery extends WatchesQuery {
 			->fetchResultSet();
 
 		$return = [];
-		while ( $row = $res->fetchRow() {
+		while ( $row = $res->fetchRow() ) {
 			$return[] = (object)[
 				'wl_user' => $row->wl_user,
 				'num_watches' => $row->num_watches,
