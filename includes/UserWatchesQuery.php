@@ -116,7 +116,7 @@ class UserWatchesQuery extends WatchesQuery {
 		$row = $dbr->newSelectQueryBuilder()
 			->select( $qInfo['fields'] )
 			->from( 'watchlist', 'w' )
-			->leftJoin( 'user', 'u', 'u.user_id=w.wl_user')
+			->leftJoin( 'user', 'u', 'u.user_id=w.wl_user' )
 			->leftJoin( 'page', 'p', 'p.page_namespace=w.wl_namespace AND p.page_title=w.wl_title' )
 			->leftJoin( 'logging', 'log', 'log.log_namespace = w.wl_namespace AND log.log_title = w.wl_title AND p.page_namespace IS NULL AND p.page_title IS NULL AND log.log_action = "delete"' )
 			->where( [
@@ -164,8 +164,8 @@ class UserWatchesQuery extends WatchesQuery {
 			->select( $fields )
 			->from( 'watchlist' )
 			->join( 'watchlist', 'w', null )
-			->where( 'w.wl_user' => $userIds )
-			->options( 'GROUP BY' => 'w.wl_user' )
+			->where( ['w.wl_user' => $userIds ] )
+			->options( ['GROUP BY' => 'w.wl_user'] )
 			->caller( __METHOD__ )
 			->fetchResultSet();
 
