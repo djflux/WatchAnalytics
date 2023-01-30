@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 class SpecialPageStatistics extends SpecialPage {
 
 	public $mMode;
@@ -33,9 +35,11 @@ class SpecialPageStatistics extends SpecialPage {
 		// $filter = false;
 		// }
 		// }
+		
+		$watchlistManager = MediaWikiServices::getInstance()->getWatchlistManager();
 
 		// @todo: delete if multiple views not needed (thus, not requiring header call here)
-		if ( $this->mTitle && $this->mTitle->isKnown() && $this->mTitle->isWatchable() ) {
+		if ( $this->mTitle && $this->mTitle->isKnown() && $watchlistManager->isWatchable( $this->mTitle ) ) {
 
 			$unReviewTimestamp = $wgRequest->getVal( 'unreview' );
 			if ( $unReviewTimestamp ) {

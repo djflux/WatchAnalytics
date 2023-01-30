@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+
 class ReviewHandler {
 
 	// used to track change of state through page load.
@@ -34,10 +36,13 @@ class ReviewHandler {
 		$this->user = $user;
 		$this->title = $title;
 		$this->isDiff = $isDiff;
+		$this->mws = MediaWikiServers::getInstance();
+		$this->watchlistManager = $this->mws->getWatchlistManager();
 	}
 
 	public static function setup( User $user, Title $title, $isDiff ) {
-		if ( ! $title->isWatchable() ) {
+		
+		if ( ! $this->watchlistManager->isWatchable( $title ) ) {
 			self::$isReviewable = false;
 			return false;
 		}
