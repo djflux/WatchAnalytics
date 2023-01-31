@@ -94,7 +94,7 @@ class WatchAnalyticsHooks {
 		$watchStats = $userWatch->getUserWatchStats( $user );
 		// $watchStats seems to come through as a PHP stdClass. This code converts to an array
 		$watchStats = json_decode(json_encode($watchStats), true);
-		$user->watchStats[] = $watchStats;
+		$user->watchStats = $watchStats;
 		$user->watchStats['max_pending_days'] = ceil(
 			$user->watchStats['max_pending_minutes'] / ( 60 * 24 )
 		);
