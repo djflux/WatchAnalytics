@@ -12,6 +12,7 @@ class SpecialPageStatistics extends SpecialPage {
 			"",  // rights required to view
 			true // show in Special:SpecialPages
 		);
+		$this->mediaWikiServices = MediaWikiServices::getInstance();
 	}
 
 	public function execute( $parser = null ) {
@@ -36,7 +37,7 @@ class SpecialPageStatistics extends SpecialPage {
 		// }
 		// }
 		
-		$watchlistManager = MediaWikiServices::getInstance()->getWatchlistManager();
+		$watchlistManager = $this->mediaWikiServices->getWatchlistManager();
 
 		// @todo: delete if multiple views not needed (thus, not requiring header call here)
 		if ( $this->mTitle && $this->mTitle->isKnown() && $watchlistManager->isWatchable( $this->mTitle ) ) {
@@ -132,12 +133,12 @@ class SpecialPageStatistics extends SpecialPage {
 		#
 		$res = $dbr->select(
 			[
-				'rev' => 'revision_actor_temp',
+				'rev' => 'revision',
 				'p' => 'page',
 				'act' => 'actor',
 			],
 			[
-				'rev.revactor_actor',
+				'rev.rev_actor',
 				'act.actor_name',
 				'COUNT( * ) AS num_revisions',
 			],
@@ -147,15 +148,15 @@ class SpecialPageStatistics extends SpecialPage {
 			],
 			__METHOD__,
 			[
-				'GROUP BY' => 'rev.revactor_actor',
+				'GROUP BY' => 'rev.rev_actor',
 				'ORDER BY' => 'num_revisions DESC',
 			],
 			[
 				'p' => [
-					'LEFT JOIN', 'p.page_id = rev.revactor_page'
+					'LEFT JOIN', 'p.page_id = rev.rev_page'
 				],
 				'act' => [
-					'LEFT JOIN', 'act.actor_id = rev.revactor_actor'
+					'LEFT JOIN', 'act.actor_id = rev.rev_actor'
 				],
 			]
 		);
@@ -253,30 +254,25 @@ class SpecialPageStatistics extends SpecialPage {
 		$html = '<h2>' . wfMessage( 'watchanalytics-pagestats-chart-header' )->text() . '</h2>';
 		$html .= '<canvas id="page-reviews-chart" width="400" height="400"></canvas>';
 
-		// $dateRangeStart = new MWTimestamp( date( 'YmdHis', strtotime( '2 weeks ago' ) ) );
-		// $dateRangeStart = $dateRangeStart->format('YmdHis');
+		$loadBalancer = $this->mediaWikiServices->getDBLoadBalancer();
 
-		$dbr = wfGetDB( DB_REPLICA );
-		$res = $dbr->select(
-			[ 'wtp' => 'watch_tracking_page' ],
-			[
-				"DATE_FORMAT( wtp.tracking_timestamp, '%Y-%m-%d %H:%i:%s' ) AS timestamp",
-				"wtp.num_reviewed AS num_reviewed",
-			],
-			[
-				'page_id' => $this->mTitle->getArticleID(),
-				// 'tracking_timestamp > ' . $dateRangeStart
-			],
-			__METHOD__,
-			[
-				"ORDER BY" => "wtp.tracking_timestamp DESC",
-				"LIMIT" => "200", // MOST RECENT 100 changes
-			],
-			null // join conditions
-		);
+		$dbr = $loadBalancer->getConnectionRef( DB_REPLICA );
+
+		$res = $dbr->newSelectQueryBuilder()
+			->select([
+					"DATE_FORMAT( tracking_timestamp, '%Y-%m-%d %H:%i:%s' ) AS timestamp",
+					"num_reviewed",
+				])
+			->from( 'watch_tracking_page' )
+			->options([
+					"ORDER BY" => "tracking_timestamp DESC",
+					"LIMIT" => "200", // MOST RECENT 100 changes
+				])
+			->caller( __METHOD__ )
+			->fetchResultSet();
 
 		$data = [];
-		while ( $row = $dbr->fetchObject( $res ) ) {
+		while ( $row = $res->fetchRow() ) {
 			$data[ $row->timestamp ] = $row->num_reviewed;
 		}
 
