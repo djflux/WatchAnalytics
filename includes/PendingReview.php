@@ -175,8 +175,7 @@ class PendingReview {
 
                $watchResults = $dbr->newSelectQueryBuilder()
                                ->select( $fields )
-                               ->from( 'watchlist' )
-                               ->join( 'watchlist', 'w', null)
+                               ->from( 'watchlist', 'w' )
                                ->leftJoin( 'page', 'p', 'p.page_namespace=w.wl_namespace AND p.page_title=w.wl_title')
                                ->leftJoin( 'logging', 'log', 'log.log_namespace = w.wl_namespace '
                                 . ' AND log.log_title = w.wl_title'
