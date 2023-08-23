@@ -657,29 +657,30 @@ class SpecialPendingReviews extends SpecialPage {
 	 * @return string HTML for button
 	 */
 	public function getDeleterTalkButton( array $deletionLog ) {
-		if ( count( $deletionLog ) == 0 ) {
-			return '';
-		}
+                if ( count( $deletionLog ) == 0 ) {
+                        return '';
+                }
 
-		$userId = $deletionLog[ count( $deletionLog ) - 1 ]->log_user;
-		$user = User::newFromId( $userId );
-
+                $userId = $deletionLog[ count( $deletionLog ) - 1 ]->log_actor;// Assign actor_id to $userId
+                $user = User::newFromActorId( $userId );// Create User object from actor_id
+                
 		$userTalk = $user->getTalkPage();
 
-		if ( $userTalk->exists() ) {
-			$talkQueryString = [];
-		} else {
-			$talkQueryString = [ 'action' => 'edit' ];
-		}
+                if ( $userTalk->exists() ) {
+                        $talkQueryString = [];
+                } else {
+                        $talkQueryString = [ 'action' => 'edit' ];
+                }
 
-		return Xml::element( 'a',
-			[
-				'href' => $userTalk->getLocalURL( $talkQueryString ),
-				'class' => 'pendingreviews-dark-blue-button' // pendingreviews-delete-talk-button
-			],
-			wfMessage( 'pendingreviews-page-deleted-talk', $user->getUserPage()->getFullText() )->text()
-		);
-	}
+                return Xml::element( 'a',
+                        [
+                                'href' => $userTalk->getLocalURL( $talkQueryString ),
+                                'class' => 'pendingreviews-dark-blue-button' // pendingreviews-delete-talk-button
+                        ],
+
+                        wfMessage( 'pendingreviews-page-deleted-talk', $user->getUserPage()->getFullText() )->text()
+                );
+        }
 
 	/**
 	 * Creates simple header stating how many pending reviews the user has.
@@ -874,7 +875,9 @@ class SpecialPendingReviews extends SpecialPage {
 		];
 
 		// get user page of user who created the log entry
-		$userPage = Title::makeTitle( NS_USER, $logEntry->log_user_text )->getFullText();
+                $userId = $logEntry->log_actor;
+                $user = User::newFromActorId( $userId );
+                $userPage = Title::makeTitle( NS_USER, $user )->getFullText();
 
 		// if a message exists for the particular log type, handle it as follows
 		if ( isset( $messages[ $logEntry->log_type ][ $logEntry->log_action ] ) ) {
